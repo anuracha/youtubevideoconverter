@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Download, trim, and convert YouTube videos to MP3 or MP4. Paste a link, set your trim points, and download instantly." />
+  <meta name="theme-color" content="#0f0f1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>ClipSync — YouTube Video & Audio Cutter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-gradient"></div>
+  <div class="bg-noise"></div>
+
+  <!-- App Shell -->
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </div>
+        <h1>Clip<span class="accent">Sync</span></h1>
+      </div>
+      <p class="tagline">Download & trim YouTube clips instantly</p>
+    </header>
+
+    <!-- URL Input Section -->
+    <section class="input-section" id="input-section">
+      <div class="input-card glass-card">
+        <div class="input-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Paste YouTube URL</span>
+        </div>
+        <div class="input-wrapper">
+          <input
+            type="url"
+            id="url-input"
+            placeholder="https://youtube.com/watch?v=..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="paste-btn" class="icon-btn" title="Paste from clipboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+        <button id="fetch-btn" class="primary-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Fetch Video</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <section class="loading-section hidden" id="loading-section">
+      <div class="glass-card loading-card">
+        <div class="loader">
+          <div class="loader-ring"></div>
+          <div class="loader-ring"></div>
+          <div class="loader-ring"></div>
+        </div>
+        <p class="loading-text">Fetching video info...</p>
+      </div>
+    </section>
+
+    <!-- Video Info & Trimmer Section -->
+    <section class="editor-section hidden" id="editor-section">
+      <!-- Video Preview Card -->
+      <div class="glass-card video-card">
+        <div class="thumbnail-wrapper">
+          <div id="yt-player-container" class="hidden">
+            <div id="yt-player"></div>
+          </div>
+          <img id="video-thumbnail" alt="Video thumbnail" />
+          <div class="duration-badge" id="duration-badge">0:00</div>
+        </div>
+        <div class="video-meta">
+          <h2 id="video-title" class="video-title">Video Title</h2>
+          <div class="video-stats">
+            <span class="stat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span id="video-views">0 views</span>
+            </span>
+            <span class="stat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span id="video-likes">0 likes</span>
+            </span>
+            <span class="stat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="video-duration-text">0:00</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trim Controls Card -->
+      <div class="glass-card trim-card">
+        <h3 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+          </svg>
+          Trim Settings
+        </h3>
+
+        <!-- Timeline Slider -->
+        <div class="timeline-container" id="timeline-container">
+          <div class="timeline-bar" id="timeline-bar">
+            <div class="timeline-fill" id="timeline-fill"></div>
+            <div class="timeline-indicator hidden" id="timeline-indicator">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="2,2 22,2 12,20"></polygon>
+              </svg>
+            </div>
+            <div class="timeline-handle start-handle" id="start-handle" role="slider" aria-label="Start time" tabindex="0"></div>
+            <div class="timeline-handle end-handle" id="end-handle" role="slider" aria-label="End time" tabindex="0"></div>
+          </div>
+          <div class="timeline-ticks" id="timeline-ticks"></div>
+        </div>
+
+        <!-- Time Inputs -->
+        <div class="time-inputs">
+          <div class="time-field">
+            <label for="start-time">Start</label>
+            <div class="time-input-wrapper">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <input type="text" id="start-time" value="0:00" class="time-input" />
+            </div>
+          </div>
+          <div class="time-separator">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+          <div class="time-field">
+            <label for="end-time">End</label>
+            <div class="time-input-wrapper">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              <input type="text" id="end-time" value="0:00" class="time-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Clip Duration & Preview -->
+        <div class="clip-actions">
+          <div class="clip-info">
+            <span class="clip-label">Clip Duration</span>
+            <span class="clip-duration" id="clip-duration">0:00</span>
+          </div>
+          <button id="preview-btn" class="preview-btn" disabled title="Preview clip">
+            <svg id="preview-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg id="preview-icon-pause" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <span id="preview-text">Preview</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Format Selection & Download -->
+      <div class="glass-card format-card">
+        <h3 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download Options
+        </h3>
+
+        <!-- Format Toggle -->
+        <div class="format-toggle">
+          <button class="format-option active" id="format-mp3" data-format="mp3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            <span>MP3 Audio</span>
+          </button>
+          <button class="format-option" id="format-mp4" data-format="mp4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+              <line x1="7" y1="2" x2="7" y2="22"></line>
+              <line x1="17" y1="2" x2="17" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <line x1="2" y1="7" x2="7" y2="7"></line>
+              <line x1="2" y1="17" x2="7" y2="17"></line>
+              <line x1="17" y1="17" x2="22" y2="17"></line>
+              <line x1="17" y1="7" x2="22" y2="7"></line>
+            </svg>
+            <span>MP4 Video</span>
+          </button>
+        </div>
+
+        <!-- Quality Selection -->
+        <div class="quality-selector" id="quality-selector">
+          <label class="quality-label">Audio Quality</label>
+          <div class="quality-options" id="quality-options">
+            <button class="quality-btn" data-quality="128">128 kbps</button>
+            <button class="quality-btn active" data-quality="192">192 kbps</button>
+            <button class="quality-btn" data-quality="320">320 kbps</button>
+          </div>
+        </div>
+
+        <div class="quality-selector hidden" id="video-quality-selector">
+          <label class="quality-label">Video Quality</label>
+          <div class="quality-options" id="video-quality-options">
+            <button class="quality-btn" data-quality="360p">360p</button>
+            <button class="quality-btn active" data-quality="720p">720p</button>
+            <button class="quality-btn" data-quality="1080p">1080p</button>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <button id="download-btn" class="download-btn">
+          <div class="download-btn-content" id="download-btn-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download Clip</span>
+          </div>
+          <div class="download-progress hidden" id="download-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span class="progress-text" id="progress-text">Processing...</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div class="toast hidden" id="toast">
+      <div class="toast-icon" id="toast-icon"></div>
+      <span id="toast-message">Message</span>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
