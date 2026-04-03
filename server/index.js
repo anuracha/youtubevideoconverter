@@ -16,7 +16,7 @@ ffmpeg.setFfmpegPath(ffmpegStatic);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Temp directory for processing
 const TEMP_DIR = path.join(os.tmpdir(), 'clipsync-temp');
@@ -341,6 +341,15 @@ app.post('/api/download', async (req, res) => {
 // ---- Health Check ----
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ---- Serve UI in Production ----
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// Catch-all to serve the frontend for non-API requests (helpful for SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // ---- Start Server ----
