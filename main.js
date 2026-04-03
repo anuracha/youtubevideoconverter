@@ -262,17 +262,26 @@ function updateClipDuration() {
 // Timeline drag logic
 function getPositionFromEvent(e) {
   const rect = timelineBar.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  let clientX = 0;
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+  } else if (e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+  } else if (e.clientX !== undefined) {
+    clientX = e.clientX;
+  }
   return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
 }
 
 function onDragStart(handle, e) {
-  e.preventDefault();
+  // Only prevent default if it's a touch event to avoid double-firing, but ensure active dragging
+  if (e.cancelable) e.preventDefault();
   state.isDragging = handle;
   document.body.style.cursor = 'grabbing';
 
   const onMove = (e) => {
     if (!state.isDragging) return;
+    if (e.cancelable) e.preventDefault();
     const pct = getPositionFromEvent(e);
     const time = Math.round(pct * state.totalDuration);
 
@@ -296,12 +305,14 @@ function onDragStart(handle, e) {
     document.removeEventListener('mouseup', onEnd);
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('touchend', onEnd);
+    document.removeEventListener('touchcancel', onEnd);
   };
 
   document.addEventListener('mousemove', onMove, { passive: false });
   document.addEventListener('mouseup', onEnd);
   document.addEventListener('touchmove', onMove, { passive: false });
   document.addEventListener('touchend', onEnd);
+  document.addEventListener('touchcancel', onEnd);
 }
 
 startHandle.addEventListener('mousedown', (e) => onDragStart('start', e));
